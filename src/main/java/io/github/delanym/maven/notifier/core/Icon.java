@@ -14,12 +14,16 @@ import java.util.Objects;
 
 /**
  * An icon that can be rendered in a notification, backed by a classpath or
- * file-system URL. Lazily writes the image to a temp file so that external
- * notification tools (PowerShell, terminal-notifier, etc.) can reference it
- * by path.
+ * file-system URL. Lazily writes the image to a cache directory so that
+ * external notification tools (PowerShell, terminal-notifier, etc.) can
+ * reference it by path.
  */
 @NullMarked
 public final class Icon {
+
+    private static final Path CACHE_DIR = Path.of(
+            System.getProperty("user.home"),
+            ".m2", "notifier-maven-extension", "cache");
 
     private final String id;
     private final URL content;
@@ -43,12 +47,12 @@ public final class Icon {
     }
 
     /**
-     * Returns the file-system path to a temp copy of this icon, creating it
-     * on first call. External tools that require a file path use this.
+     * Returns the file-system path to a cached copy of this icon, creating
+     * it on first call. External tools that require a file path use this.
      */
     public synchronized Path asPath() {
         if (cachedPath == null) {
-            cachedPath = writeToTemp();
+            cachedPath = writeToCache();
         }
         return cachedPath;
     }
@@ -69,23 +73,24 @@ public final class Icon {
         }
     }
 
-    private Path writeToTemp() {
-        String extension = extensionOf(content.getPath());
+    private Path writeToCache() {
+        String fileName = fileNameFromUrl(content);
         try {
-            Path temp = Files.createTempFile("notifier-icon-" + id + "-", extension);
-            temp.toFile().deleteOnExit();
+            Files.createDirectories(CACHE_DIR);
+            Path iconFile = CACHE_DIR.resolve(fileName);
             try (InputStream in = content.openStream()) {
-                Files.write(temp, in.readAllBytes());
+                Files.write(iconFile, in.readAllBytes());
             }
-            return temp;
+            return iconFile;
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to cache icon to temp file: " + id, e);
+            throw new UncheckedIOException("Failed to cache icon: " + id, e);
         }
     }
 
-    private String extensionOf(String path) {
-        int dot = path.lastIndexOf('.');
-        return dot >= 0 ? path.substring(dot) : ".png";
+    private static String fileNameFromUrl(URL url) {
+        String path = url.getPath();
+        int slash = path.lastIndexOf('/');
+        return slash >= 0 ? path.substring(slash + 1) : path;
     }
 
     @Override
