@@ -11,7 +11,7 @@ Add to `.mvn/extensions.xml` in your project (or in `~/.m2/extensions.xml` for a
 ```xml
 <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0">
     <extension>
-        <groupId>com.github.delanym</groupId>
+        <groupId>io.github.delanym</groupId>
         <artifactId>notifier-maven-extension</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </extension>
@@ -181,7 +181,7 @@ MQTT is an **optional dependency**. If you use it, add the Paho client alongside
 ```xml
 <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0">
     <extension>
-        <groupId>com.github.delanym</groupId>
+        <groupId>io.github.delanym</groupId>
         <artifactId>notifier-maven-extension</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </extension>

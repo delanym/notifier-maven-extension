@@ -76,7 +76,7 @@ public final class TerminalNotifierNotifier implements Notifier {
         }
 
         command.add("-group");
-        command.add("com.github.delanym.notifier");
+        command.add("io.github.delanym.notifier");
 
         if (sound != null) {
             command.add("-sound");
