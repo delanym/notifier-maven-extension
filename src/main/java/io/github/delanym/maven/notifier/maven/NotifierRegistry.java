@@ -142,7 +142,7 @@ public final class NotifierRegistry {
                 return candidate;
             }
         }
-        LOGGER.warn("No notifier auto-discovered; notifications will be silently dropped");
+        LOGGER.info("No active notifier found: notifications will not be sent.");
         return DoNothingNotifier.instance();
     }
 
