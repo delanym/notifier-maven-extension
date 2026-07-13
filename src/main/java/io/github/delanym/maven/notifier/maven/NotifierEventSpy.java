@@ -35,6 +35,8 @@ public final class NotifierEventSpy extends AbstractEventSpy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotifierEventSpy.class);
     private static final String LINE_BREAK = System.lineSeparator();
+    private static final int MAX_TITLE_LENGTH = 40;
+    private static final int MAX_MESSAGE_LENGTH = 1000;
 
     private Notifier notifier = DoNothingNotifier.instance();
     private NotifierConfiguration configuration = NotifierConfiguration.builder().build();
@@ -115,8 +117,8 @@ public final class NotifierEventSpy extends AbstractEventSpy {
             message.append(exception.getMessage()).append(LINE_BREAK);
         }
         Notification notification = Notification.builder()
-                .title("Maven Build Error")
-                .message(message.toString())
+                .title(truncate("Maven Build Error", MAX_TITLE_LENGTH))
+                .message(truncate(message.toString(), MAX_MESSAGE_LENGTH))
                 .subtitle(BuildStatus.FAILURE.message())
                 .icon(Icon.of(BuildStatus.FAILURE.iconUrl(), BuildStatus.FAILURE.name()))
                 .level(NotificationLevel.ERROR)
@@ -128,9 +130,11 @@ public final class NotifierEventSpy extends AbstractEventSpy {
             MavenExecutionResult result,
             BuildStatus status,
             long elapsedSeconds) {
-        return "Maven " + status.message()
-                + " [" + elapsedSeconds + "s] "
-                + result.getProject().getName();
+        return truncate(
+                "Maven " + status.message()
+                        + " [" + elapsedSeconds + "s] "
+                        + result.getProject().getName(),
+                MAX_TITLE_LENGTH);
     }
 
     private String buildMessage(
@@ -143,7 +147,7 @@ public final class NotifierEventSpy extends AbstractEventSpy {
             if (ctx.gitDirty()) {
                 branch += "*";
             }
-            return branch;
+            return truncate(branch, MAX_MESSAGE_LENGTH);
         }
         return "";
     }
@@ -153,5 +157,12 @@ public final class NotifierEventSpy extends AbstractEventSpy {
             case SUCCESS -> NotificationLevel.INFO;
             case FAILURE -> NotificationLevel.ERROR;
         };
+    }
+
+    private static String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength) + "\u2026";
     }
 }
